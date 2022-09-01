@@ -12,6 +12,15 @@ gfx["rectangle"] = function(x, y, w, h)
 	app.fill();
 }
 
+gfx["triangle"] = function(x1, y1, x2, y2, x3, y3)
+{
+	app.beginPath();
+    app.moveTo(x1, y1);
+    app.lineTo(x2, y2);
+    app.lineTo(x3, y3);
+    app.fill();
+}
+
 gfx["push"] = function()
 {
 	app.save();

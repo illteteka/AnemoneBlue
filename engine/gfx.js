@@ -15,10 +15,16 @@ gfx["rectangle"] = function(x, y, w, h)
 gfx["triangle"] = function(x1, y1, x2, y2, x3, y3)
 {
 	app.beginPath();
-    app.moveTo(x1, y1);
-    app.lineTo(x2, y2);
-    app.lineTo(x3, y3);
-    app.fill();
+	app.moveTo(x1, y1);
+	app.lineTo(x2, y2);
+	app.lineTo(x3, y3);
+	app.fill();
+}
+
+gfx["print"] = function(t, x, y)
+{
+	app.font = '22px dsp';
+	app.fillText(t, x, y);
 }
 
 gfx["push"] = function()

@@ -34,6 +34,8 @@ var minus_key = _OFF;
 var plus_key = _OFF;
 var grave_key = _OFF;
 
+input.caps = false;
+
 // Enable right click
 canvas.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -105,7 +107,11 @@ input["update"] = function()
 
 function keyDown(e)
 {
-	keyboardRaw[input.getKey(e.keyCode)] = 1;
+	input.caps = e.getModifierState && e.getModifierState( 'CapsLock' );
+
+	var key = input.getKey(e.keyCode);
+	keyboardRaw[key] = 1;
+	keyboard.typeKey(key);
 }
 window.addEventListener("keydown", keyDown, false);
 
@@ -136,8 +142,10 @@ input["getKey"] = function(key)
 			key = "minus";
 			break;
 		case 187:
-		case 107:
 			key = "plus";
+			break;
+		case 107:
+			key = "numplus";
 			break;
 		case 8:
 			key = "backspace";

@@ -110,6 +110,10 @@ function keyDown(e)
 	input.caps = e.getModifierState && e.getModifierState( 'CapsLock' );
 
 	var key = input.getKey(e.keyCode);
+
+	if (key === "tab")
+		e.preventDefault();
+
 	keyboardRaw[key] = 1;
 	keyboard.typeKey(key);
 }

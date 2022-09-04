@@ -1,5 +1,6 @@
 var canvas = document.getElementById("app");
 var app = canvas.getContext("2d");
+const fontSize = 22;
 
 round = function(x, inc)
 {

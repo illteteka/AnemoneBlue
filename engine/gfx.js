@@ -21,9 +21,15 @@ gfx["triangle"] = function(x1, y1, x2, y2, x3, y3)
 	app.fill();
 }
 
+gfx["getTextWidth"] = function(t)
+{
+	const metrics = app.measureText(t);
+	return metrics.width;
+}
+
 gfx["print"] = function(t, x, y)
 {
-	app.font = '22px dsp';
+	app.font = fontSize + 'px dsp';
 	app.fillText(t, x, y);
 }
 

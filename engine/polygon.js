@@ -4,10 +4,12 @@ polygon["init"] = function ()
 {
 	polygon["data"] = [];
 	polygon["cache"] = [];
+	polygon["importCache"] = [];
 }
 
 polygon["new"] = function (fname)
 {
+	polygon.importCache[polygon.importCache.length] = fname;
 	return soda.open(fname);
 }
 

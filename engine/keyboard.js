@@ -1,8 +1,8 @@
 var keyboard = [];
-keyboard.last = "";
-keyboard.str = "";
 keyboard.box = [];
 keyboard.box.active = "";
+keyboard.last = "";
+keyboard.str = "";
 keyboard.cursor = 0;
 keyboard.cursorTimer = 0;
 keyboard.cursorFlip = true;
@@ -42,6 +42,15 @@ keyboard["clear"] = function()
 {
 	keyboard.box = [];
 	keyboard.box.active = "";
+	keyboard.last = "";
+	keyboard.str = "";
+	keyboard.cursor = 0;
+	keyboard.cursorTimer = 0;
+	keyboard.cursorFlip = true;
+	keyboard.cursor_end = 0;
+	keyboard.selection = false;
+	keyboard.clipboard = "";
+	keyboard.deferClipboard = false;
 }
 
 keyboard["draw"] = function()

@@ -2,12 +2,10 @@ let a = 0;
 let tick = new Date();
 let fps = 0;
 
-let x = 150;
-let y = 150;
-
 let rainbow = "white";
 
 let test_soda = "";
+let test_soda2 = "";
 
 function load()
 {
@@ -21,7 +19,11 @@ function load()
 	keyboard.newBox("no", 300, 400, 20 * fontSize, fontSize + 5);
 	keyboard.newBox("yes", 300, 450, 20 * fontSize, fontSize + 5, 0, "default", "Password", "testbox", "league of leg");
 
+	guy.init();
+	guy.new(150, 150);
+
 	test_soda = polygon.new("../soda/one.soda");
+	test_soda2 = polygon.new("../soda/test-level.soda");
 }
 
 function update(dt)
@@ -29,18 +31,9 @@ function update(dt)
 	soda.update();
 	keyboard.update(dt);
 
+	guy.update(dt);
+
 	a += 1 * dt;
-	if (w_key == _ON)
-		y -= 1 * dt;
-
-	if (s_key == _ON)
-		y += 1 * dt;
-
-	if (a_key == _ON)
-		x -= 1 * dt;
-
-	if (d_key == _ON)
-		x += 1 * dt;
 }
 
 function draw()
@@ -59,12 +52,8 @@ function draw()
 	rainbow = hsl(a % 255, 255, 128, 100);
 
 	keyboard.draw();
-
-	gfx.setColor(rainbow);
-	gfx.push();
-	gfx.translateSoda(x, y)
-	polygon.draw(test_soda);
-	gfx.pop();
+	guy.draw();
+	//gfx.setColor(rainbow);
 }
 
 function loop()
@@ -96,8 +85,6 @@ engine/dev (partial)
 
 levels/test_one
 levels/test_two
-
-objects/guy
 
 soda/x
 

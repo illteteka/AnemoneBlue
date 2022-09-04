@@ -15,7 +15,14 @@ let file_pos = 0;
 var file = "";
 let tbl = [];
 
+let active_cache = false;
+
 soda["open"] = function(fname)
+{
+	return soda.stripModelName(fname);
+}
+
+soda["newFile"] = function(fname)
 {
 	tbl = [];
 	tbl.width = 0;
@@ -35,25 +42,36 @@ soda["open"] = function(fname)
 		})
 	}
 
-	return tbl.model_name;
-
+	active_cache = true;
 }
 
 soda["update"] = function()
 {
-	// Wait for file promise
-	if (file !== "")
+	if (polygon.importCache.length > 0)
 	{
-		// Reset import vars
-		line_count = 0;
-		file_state = "SETUP";
-		file_pos = 0;
+		if (!active_cache)
+		{
+			let this_model = polygon.importCache[polygon.importCache.length - 1];
+			soda.newFile(this_model);
+		}
 		
-		soda.read(tbl);
+		// Wait for file promise
+		if (file !== "")
+		{
+			// Reset import vars
+			line_count = 0;
+			file_state = "SETUP";
+			file_pos = 0;
+			
+			soda.read(tbl);
 
-		polygon.data[tbl.model_name] = tbl;
+			polygon.data[tbl.model_name] = tbl;
 
-		file = "";
+			polygon.importCache.pop();
+
+			file = "";
+			active_cache = false;
+		}
 	}
 }
 

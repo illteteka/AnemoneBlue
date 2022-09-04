@@ -1,8 +1,3 @@
-fetch('../soda/one.soda')
-	.then(response => response.text())
-	.then((data) => {
-		console.log(data)
-})
 /*
 	Soda artwork importer
 	Only works when hosted on a server
@@ -18,13 +13,14 @@ let file_state = "SETUP";
 let file_pos = 0;
 
 var file = "";
+let tbl = [];
 
 soda["open"] = function(fname)
 {
-	let tbl = [];
+	tbl = [];
 	tbl.width = 0;
 	tbl.height = 0;
-	tbl.model_name = import.stripModelName(fname);
+	tbl.model_name = soda.stripModelName(fname);
 	
 	let file_dot = fname.length - reverseString(fname).indexOf('.');
 	let file_ext = fname.substring(file_dot);
@@ -37,214 +33,203 @@ soda["open"] = function(fname)
 			.then((data) => {
 				file = data;
 		})
-
-		// Reset import vars
-		line_count = 0;
-		file_state = "SETUP";
-		file_pos = 0;
-		
-		import.read(tbl, fname);
 	}
-
-	polygon.data[tbl.model_name] = tbl;
 
 	return tbl.model_name;
 
 }
 
-/*
-function import.stripModelName(str)
-	local s = string.reverse(str)
-	local c = ""
-
-	local i = 1
-	while i <= string.len(s) do
-
-		local this_l = string.sub(s, i, i)
-
-		if this_l ~= "/" then
-			c = this_l .. c
-		else
-			i = string.len(s) + 1
-		end
-
-		i = i + 1
-	end
-
-	return string.sub(c, 1, -6)
-
-end
-
-function import.read(tbl, file)
-
-	local poly_count = 1
-	
-	local i
-	for line in love.filesystem.lines(file) do
-		local load_line = line:find("\n")
-	
-		i = line:sub(file_pos,load_line)
-		i = i:gsub("\n", "")
+soda["update"] = function()
+{
+	// Wait for file promise
+	if (file !== "")
+	{
+		// Reset import vars
+		line_count = 0;
+		file_state = "SETUP";
+		file_pos = 0;
 		
-		-- Start load
-		if (line_count ~= 0) then
-			local cursor = 0
-			
-			if file_state == "SETUP" then
-				-- Width
-				local sub_cursor = string.find(i, ",")
-				tbl.width = tonumber(i:sub(cursor, sub_cursor - 1))
+		soda.read(tbl);
+
+		polygon.data[tbl.model_name] = tbl;
+
+		file = "";
+	}
+}
+
+soda["stripModelName"] = function(str)
+{
+	let rev = reverseString(str).indexOf("/");
+	return str.slice(str.length - rev, -5);
+}
+
+soda["read"] = function(tbl)
+{
+	let poly_count = 0;
+	var lines = file.split('\n');
+	
+	for (line in lines)
+	{
+		let this_line = lines[line];
+		// Start load
+		if (line_count !== 0)
+		{
+			let cursor = 0;
+
+			if (file_state === "SETUP")
+			{
+				// Width
+				let sub_cursor = this_line.indexOf(",");
+				tbl.width = this_line.slice(cursor, sub_cursor);
+
+				// Height
+				cursor = sub_cursor + 1;
+				sub_cursor = this_line.indexOf(";", cursor);
+				tbl.height = this_line.slice(cursor, sub_cursor);
+
+				file_state = "DATA";
+			}
+			else if (file_state === "DATA")
+			{
+				tbl[poly_count] = [];
+
+				let vv = 0;
+				let nn = 0;
+
+				// Visible
+				let sub_cursor = this_line.indexOf(",");
+				vv = this_line.slice(cursor, sub_cursor) == 1;
 				
-				-- Height
-				cursor = sub_cursor + 1
-				sub_cursor = string.find(i, ";", cursor)
-				tbl.height = tonumber(i:sub(cursor, sub_cursor - 1))
-				
-				file_state = "DATA"
-				
-			elseif file_state == "DATA" then
-			
-				table.insert(tbl, {})
-			
-				local vv, nn
-			
-				-- Visible
-				local sub_cursor = string.find(i, ",")
-				if i:sub(cursor, sub_cursor - 1) == "1" then
-					vv = true
-				else
-					vv = false
-				end
-				
-				-- Layer name
-				cursor = sub_cursor + 1
-				sub_cursor = string.find(i, ",", cursor)
-				nn = i:sub(cursor, sub_cursor - 1)
-				
-				tbl[poly_count].visible = vv
-				
-				-- Shape kind
-				cursor = sub_cursor + 1
-				sub_cursor = string.find(i, ",", cursor)
-				tbl[poly_count].kind = i:sub(cursor, sub_cursor - 1)
-				
-				local rr,gg,bb,aa
-				
-				-- R
-				cursor = sub_cursor + 1
-				sub_cursor = string.find(i, ",", cursor)
-				rr = tonumber(i:sub(cursor, sub_cursor - 1)) / 255
-				
-				-- G
-				cursor = sub_cursor + 1
-				sub_cursor = string.find(i, ",", cursor)
-				gg = tonumber(i:sub(cursor, sub_cursor - 1)) / 255
-				
-				-- B
-				cursor = sub_cursor + 1
-				sub_cursor = string.find(i, ",", cursor)
-				bb = tonumber(i:sub(cursor, sub_cursor - 1)) / 255
-				
-				-- A
-				cursor = sub_cursor + 1
-				sub_cursor = string.find(i, ":", cursor)
-				aa = tonumber(i:sub(cursor, sub_cursor - 1)) / 255
-				
-				tbl[poly_count].color = {rr,gg,bb,aa}
-				
-				-- Load data
-				i = i:sub(sub_cursor + 1)
-				cursor = 0
-				
-				local new_vertex = false
-				local data_count = 1
-				local vertex_count = 1
-				
-				tbl[poly_count].raw = {}
-				
-				while i:len() > 0 do
-				
-					if new_vertex then
-						data_count = 1
-						vertex_count = vertex_count + 1
-						new_vertex = false
-					end
-					
-					local sub_cursor = string.find(i, ",")
-					local sub_cc = string.find(i, ":")
-					
-					if (sub_cc == nil) then
-						sub_cc = string.find(i, ";")
-					end
-					
-					if sub_cursor == nil then
-						sub_cursor = i:len()
+				// Layer name
+				cursor = sub_cursor + 1;
+				sub_cursor = this_line.indexOf(",", cursor);
+				nn = this_line.slice(cursor, sub_cursor);
+
+				tbl[poly_count]["visible"] = vv;
+
+				// Shape kind
+				cursor = sub_cursor + 1;
+				sub_cursor = this_line.indexOf(",", cursor);
+				tbl[poly_count]["kind"] = this_line.slice(cursor, sub_cursor);
+
+				let rr = 0;
+				let gg = 0;
+				let bb = 0;
+				let aa = 0;
+
+				// R
+				cursor = sub_cursor + 1;
+				sub_cursor = this_line.indexOf(",", cursor);
+				rr = this_line.slice(cursor, sub_cursor);
+
+				// G
+				cursor = sub_cursor + 1;
+				sub_cursor = this_line.indexOf(",", cursor);
+				gg = this_line.slice(cursor, sub_cursor);
+
+				// B
+				cursor = sub_cursor + 1;
+				sub_cursor = this_line.indexOf(",", cursor);
+				bb = this_line.slice(cursor, sub_cursor);
+
+				// A
+				cursor = sub_cursor + 1;
+				sub_cursor = this_line.indexOf(":", cursor);
+				aa = (Number(this_line.slice(cursor, sub_cursor)) / 255) * 100;
+
+				tbl[poly_count]["color"] = "rgba(" + rr + " " + gg + " " + bb + " / " + aa + "%)"
+
+				// Load data
+				this_line = this_line.slice(sub_cursor + 1);
+				cursor = 0;
+
+				let new_vertex = false;
+				let data_count = 1;
+				let vertex_count = 0;
+
+				tbl[poly_count]["raw"] = [];
+
+				while (this_line.length > 0)
+				{
+					if (new_vertex)
+					{
+						data_count = 1;
+						vertex_count++;
+						new_vertex = false;
+					}
+
+					sub_cursor = this_line.indexOf(",");
+					sub_cc = this_line.indexOf(":");
+
+					if (sub_cc == -1)
+						sub_cc = this_line.indexOf(";");
+
+					if (sub_cursor == -1)
+						sub_cursor = this_line.length;
 					else
-						if sub_cc < sub_cursor then
-							sub_cursor = sub_cc
-							new_vertex = true
-						end
-					end
-					
-					local string_test = i:sub(cursor, sub_cursor - 1)
-					string_test = string_test:gsub(";", "")
-					
-					local data_value_string = string_test
-					local data_value = tonumber(string_test)
-					
-					if (data_count == 1) then
-						tbl[poly_count].raw[vertex_count] = {}
-						tbl[poly_count].raw[vertex_count].x = data_value
-					elseif (data_count == 2) then
-						tbl[poly_count].raw[vertex_count].y = data_value
-					elseif (data_count == 3) then
-						if tbl[poly_count].kind == "polygon" then
-						
-							if data_value_string ~= "-" then
-								tbl[poly_count].raw[vertex_count].va = data_value
-							end
-							
+					{
+						if (sub_cc < sub_cursor)
+						{
+							sub_cursor = sub_cc;
+							new_vertex = true;
+						}
+					}
+
+					let string_test = this_line.slice(cursor, sub_cursor);
+					string_test = string_test.replaceAll(';', '');
+
+					let data_value_string = string_test;
+					let data_value = Number(string_test);
+
+					if (data_count == 1)
+					{
+						tbl[poly_count].raw[vertex_count] = [];
+						tbl[poly_count].raw[vertex_count]["x"] = data_value;
+					}
+					else if (data_count == 2)
+					{
+						tbl[poly_count].raw[vertex_count]["y"] = data_value;
+					}
+					else if (data_count == 3)
+					{
+						if (tbl[poly_count].kind === "polygon")
+						{
+							if (data_value_string !== "-")
+								tbl[poly_count].raw[vertex_count]["va"] = data_value - 1;
+						}
 						else
-							tbl[poly_count].segments = data_value
-						end
-					elseif (data_count == 4) then
-						if tbl[poly_count].kind == "polygon" then
-						
-							if data_value_string ~= "-" then
-								tbl[poly_count].raw[vertex_count].vb = data_value
-							end
-							
+						{
+							tbl[poly_count]["segments"] = data_value;
+						}
+					}
+					else if (data_count == 4)
+					{
+						if (tbl[poly_count].kind === "polygon")
+						{
+							if (data_value_string !== "-")
+								tbl[poly_count].raw[vertex_count]["vb"] = data_value - 1;
+						}
 						else
-							tbl[poly_count]._angle = data_value
-						end
-					end
+						{
+							tbl[poly_count]["_angle"] = data_value;
+						}
+					}
+
+					// Repeat
+					this_line = this_line.slice(sub_cursor + 1);
+					cursor = 0;
 					
-					-- Repeat
-					i = i:sub(sub_cursor + 1)
-					cursor = 0
-					
-					data_count = data_count + 1
-				
-				end
-				
-				poly_count = poly_count + 1
-			
-			end
-			
-		end
-		
-		line_count = line_count + 1
-		-- End load
-		file_pos = 0
-		load_line = line:find("\n")
-		
-		if load_line == nil then
-			load_line = line:len()
-		end
-	end
+					data_count = data_count + 1;
+				}
 
-end
+				poly_count++;
+			}
 
-return import
+		}
 
-*/
+		line_count++;
+		// End load
+		file_pos = 0;
+
+	}
+}

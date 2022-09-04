@@ -7,20 +7,26 @@ let y = 150;
 
 let rainbow = "white";
 
+let test_soda = "";
+
 function load()
 {
 	ctrl.init();
 	win.init();
+	polygon.init();
 
 	keyboard.newBox("testbox", 300, 300, 20 * fontSize, fontSize + 5, 32, "default", "Username", "testbo2");
 	keyboard.newBox("testbo2", 300, 350, 20 * fontSize, fontSize + 5, 32, "password", "Password", "testbox");
 
 	keyboard.newBox("no", 300, 400, 20 * fontSize, fontSize + 5);
 	keyboard.newBox("yes", 300, 450, 20 * fontSize, fontSize + 5, 0, "default", "Password", "testbox", "league of leg");
+
+	test_soda = polygon.new("../soda/one.soda");
 }
 
 function update(dt)
 {
+	soda.update();
 	keyboard.update(dt);
 
 	a += 1 * dt;
@@ -56,8 +62,8 @@ function draw()
 
 	gfx.setColor(rainbow);
 	gfx.push();
-	gfx.translate(x,y);
-	gfx.rectangle(0,0,100,100);
+	gfx.translateSoda(x, y)
+	polygon.draw(test_soda);
 	gfx.pop();
 }
 
@@ -85,15 +91,12 @@ window.requestAnimationFrame(loop);
 load();
 
 /*
-engine/import
-engine/polygon
 engine/editor
 engine/dev (partial)
 
 levels/test_one
 levels/test_two
 
-objects/blueguy
 objects/guy
 
 soda/x
@@ -101,6 +104,4 @@ soda/x
 instances
 
 main
-	
-	
 */

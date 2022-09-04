@@ -13,6 +13,15 @@
 	</head>
 
 	<body style="overflow: hidden;">
+		<svg width="0" height="0" style="position:absolute;z-index:-1;">
+			<defs>
+				<filter id="remove-alpha" x="0" y="0" width="100%" height="100%">
+					<feComponentTransfer>
+						<feFuncA type="discrete" tableValues="0 1"></feFuncA>
+					</feComponentTransfer>
+				</filter>
+			</defs>
+		</svg>
 		<canvas id="app" width="1" height="1">
 			Canvas not supported
 		</canvas>
@@ -22,6 +31,7 @@
 		<script src="engine/ctrl.js"></script>
 		<script src="engine/input.js"></script>
 		<script src="engine/keyboard.js"></script>
+		<script src="engine/polygon.js"></script>
 		<script src="engine/soda.js"></script>
 		<script src="client.js"></script>
 	</body>

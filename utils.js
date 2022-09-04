@@ -1,6 +1,7 @@
 var canvas = document.getElementById("app");
 var app = canvas.getContext("2d");
 const fontSize = 22;
+canvas.style.imageRendering = "pixelated";
 
 round = function(x, inc)
 {

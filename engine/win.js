@@ -6,8 +6,8 @@ const WINDOW_BG = "black";
 win.init = function ()
 {
 	// Init window
-	win.w = 2;
-	win.h = 2;
+	win.w = document.documentElement.clientWidth;
+	win.h = document.documentElement.clientHeight;
 	win.x = 0;
 	win.y = 0;
 	
@@ -55,11 +55,11 @@ win["draw"] = function ()
 			gfx.translate(round(camera.x, rnd), round(camera.y, rnd));
 			gfx.scale(camera.zoom, camera.zoom);
 			
-			//drawGame();
+			drawGame();
 		
 		gfx.pop();
 		// End center window
 	
 	gfx.pop();
-	// -- End screen scaling
+	// End screen scaling
 }

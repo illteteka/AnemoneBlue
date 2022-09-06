@@ -3,8 +3,6 @@ var gfx = [];
 gfx["setColor"] = function(col)
 {
 	app.fillStyle = col;
-	app.lineWidth = 0.1;
-	app.strokeStyle = col;
 }
 
 gfx["rectangle"] = function(x, y, w, h)
@@ -16,14 +14,11 @@ gfx["rectangle"] = function(x, y, w, h)
 
 gfx["triangle"] = function(x1, y1, x2, y2, x3, y3)
 {
-	app.filter = 'url(#remove-alpha)';
 	app.beginPath();
 	app.moveTo(x1, y1);
 	app.lineTo(x2, y2);
 	app.lineTo(x3, y3);
-	app.stroke();
 	app.fill();
-	app.filter = 'none';
 }
 
 gfx["getTextWidth"] = function(t)
@@ -36,6 +31,13 @@ gfx["print"] = function(t, x, y)
 {
 	app.font = fontSize + 'px dsp';
 	app.fillText(t, x, y);
+}
+
+gfx["printCenter"] = function(t, x, y)
+{
+	app.font = fontSize + 'px dsp';
+	x = ((win.w/2) - (gfx.getTextWidth(t)/2)) - 16;
+	gfx.print(t, x, y);
 }
 
 gfx["push"] = function()
@@ -58,12 +60,22 @@ gfx["translate"] = function(x, y)
 	app.translate(x, y);
 }
 
-gfx["translateSoda"] = function(x, y)
-{
-	gfx.translate(Math.floor(x) + 0.98000000000022, Math.floor(y) + 0.96000000000038);
-}
-
 gfx["clear"] = function()
 {
 	canvas.width = canvas.width;
+}
+
+gfx["newImage"] = function(x, w, h)
+{
+	var this_img = new Image();
+	this_img.src = x;
+	this_img.w = w;
+	this_img.h = h;
+
+	return this_img;
+}
+
+gfx["drawImage"] = function(img)
+{
+	app.drawImage(img, 0, 0, img.w, img.w);
 }

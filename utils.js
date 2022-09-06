@@ -1,7 +1,6 @@
 var canvas = document.getElementById("app");
 var app = canvas.getContext("2d");
 const fontSize = 22;
-canvas.style.imageRendering = "pixelated";
 
 round = function(x, inc)
 {
@@ -87,4 +86,14 @@ hsl = function(h,s,l,a)
 reverseString = function(str)
 {
 	return str.split("").reverse().join("");
+}
+
+lengthdir_x = function (length, dir)
+{
+	return length * Math.cos(dir);
+}
+
+lengthdir_y = function (length, dir)
+{
+	return -length * Math.sin(dir);
 }

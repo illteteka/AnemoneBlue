@@ -1,44 +1,102 @@
-let a = 0;
+// Global variables
 let tick = new Date();
 let fps = 0;
 
-let rainbow = "white";
+// Levels
+const LEVEL_TEST_1 = 0;
+const LEVEL_TEST_2 = 1;
+const LEVEL_EDITOR = 2;
 
-let test_soda = "";
-let test_soda2 = "";
+let LEVEL_SWITCH = LEVEL_EDITOR;
+
+// Debug variables
+let a = 0;
+let rainbow = "white";
 
 function load()
 {
+	dev.init()
 	ctrl.init();
 	win.init();
-	polygon.init();
 
+	if (LEVEL_SWITCH == LEVEL_EDITOR)
+	{
+		editor.init();
+	}
+	else
+	{
+		instances.load(); // Needs to happen before loading a level
+
+		if (LEVEL_SWITCH == LEVEL_TEST_1)
+			level_test_one.init();
+		else if (LEVEL_SWITCH == LEVEL_TEST_2)
+			level_test_two.init();
+	}
+
+	/*
 	keyboard.newBox("testbox", 300, 300, 20 * fontSize, fontSize + 5, 32, "default", "Username", "testbo2");
 	keyboard.newBox("testbo2", 300, 350, 20 * fontSize, fontSize + 5, 32, "password", "Password", "testbox");
 
 	keyboard.newBox("no", 300, 400, 20 * fontSize, fontSize + 5);
 	keyboard.newBox("yes", 300, 450, 20 * fontSize, fontSize + 5, 0, "default", "Password", "testbox", "league of leg");
-
-	guy.init();
-	guy.new(150, 150);
-
-	test_soda = polygon.new("../soda/one.soda");
-	test_soda2 = polygon.new("../soda/test-level.soda");
+	*/
 }
 
 function update(dt)
 {
-	soda.update();
+	dev.updateDebugMenu(dt);
 	keyboard.update(dt);
 
-	guy.update(dt);
+	if (sleep == 0)
+	{
+		updateGame(dt);
+	}
+	else
+	{
+		sleep = Math.max(sleep - dt, 0);
+	}
 
+	// DEBUG
 	a += 1 * dt;
+}
+
+function updateGame(dt)
+{
+	if (LEVEL_SWITCH == LEVEL_TEST_1)
+		level_test_one.update(dt);
+	else if (LEVEL_SWITCH == LEVEL_TEST_2)
+		level_test_two.update(dt);
+	else if (LEVEL_SWITCH == LEVEL_EDITOR)
+	{
+		editor.update(dt);
+	}
+}
+
+function drawGame(dt)
+{
+	if (LEVEL_SWITCH == LEVEL_TEST_1)
+		level_test_one.draw();
+	else if (LEVEL_SWITCH == LEVEL_TEST_2)
+		level_test_two.draw();
+	else if (LEVEL_SWITCH == LEVEL_EDITOR)
+	{
+		editor.draw();
+	}
 }
 
 function draw()
 {
 	win.draw();
+
+	if (LEVEL_SWITCH == LEVEL_EDITOR)
+	{
+		editor.drawUI();
+	}
+
+	// Always run this last
+	dev.drawDebugMenu();
+	
+	/*
 	gfx.setColor("white");
 
 	let spacing = fontSize + 2;
@@ -52,8 +110,10 @@ function draw()
 	rainbow = hsl(a % 255, 255, 128, 100);
 
 	keyboard.draw();
-	guy.draw();
+	obj_guy.draw();
 	//gfx.setColor(rainbow);
+	*/
+	
 }
 
 function loop()
@@ -80,15 +140,5 @@ window.requestAnimationFrame(loop);
 load();
 
 /*
-engine/editor
-engine/dev (partial)
-
-levels/test_one
-levels/test_two
-
-soda/x
-
-instances
-
-main
+main again
 */

@@ -32,8 +32,8 @@ ctrl["update"] = function ()
 {
 	// Get mouse pos, relative to screen scale
 	
-	var mx = mouse.x / window.scale;
-	var my = mouse.y / window.scale;
+	var mx = mouse.x / win.scale;
+	var my = mouse.y / win.scale;
 	mx = (mx - camera.x)/camera.zoom;
 	my = (my - camera.y)/camera.zoom;
 
@@ -47,3 +47,7 @@ canvas.addEventListener('mousemove', event => {
     mouse.y = event.clientY - rect.top;
 	ctrl.update();
 }, false);
+
+canvas.addEventListener("wheel", event => {
+    mouse.wheel = Math.sign(event.deltaY) * -1;
+});

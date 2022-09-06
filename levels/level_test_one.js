@@ -40,7 +40,7 @@ level_test_one["init"] = function()
 level_test_one["update"] = function(dt)
 {
 	obj_guy.update(dt);
-	
+
 	if (r_key == _PRESS)
 	{
 		level_test_two.init();
@@ -49,6 +49,6 @@ level_test_one["update"] = function(dt)
 
 level_test_one["draw"] = function()
 {
-	//polygon.draw(test_level);
+	gfx.drawImage(mdl_test_level);
 	obj_guy.draw();
 }

@@ -1,6 +1,7 @@
 var obj_guy = [];
 
 var mdl_guy = gfx.newImage("../anemone-blue/svg/one.svg", 48, 48);
+var mdl_test_level = gfx.newImage("../anemone-blue/svg/test-level.svg", 512, 512);
 
 obj_guy["init"] = function()
 {

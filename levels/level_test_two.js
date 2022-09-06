@@ -26,6 +26,6 @@ level_test_two["update"] = function(dt)
 
 level_test_two["draw"] = function()
 {
-	//polygon.draw(test_level);
+	gfx.drawImage(mdl_test_level);
 	obj_guy.draw();
 }

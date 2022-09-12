@@ -77,5 +77,5 @@ gfx["newImage"] = function(x, w, h)
 
 gfx["drawImage"] = function(img)
 {
-	app.drawImage(img, 0, 0, img.w, img.w);
+	app.drawImage(img, 0, 0, img.w, img.h);
 }

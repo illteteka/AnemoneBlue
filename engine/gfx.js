@@ -42,12 +42,14 @@ gfx["printCenter"] = function(t, x, y)
 
 gfx["push"] = function()
 {
-	app.save();
+	if (LEVEL_SWITCH === LEVEL_EDITOR)
+		app.save();
 }
 
 gfx["pop"] = function()
 {
-	app.restore();
+	if (LEVEL_SWITCH === LEVEL_EDITOR)
+		app.restore();
 }
 
 gfx["scale"] = function(x, y)

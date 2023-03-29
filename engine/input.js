@@ -19,6 +19,7 @@ var shift_key = _OFF;
 
 var r_key = _OFF;
 var z_key = _OFF;
+var y_key = _OFF;
 
 var up_key = _OFF;
 var down_key = _OFF;
@@ -33,6 +34,10 @@ var d_key = _OFF;
 var minus_key = _OFF;
 var plus_key = _OFF;
 var grave_key = _OFF;
+
+var t_key = _OFF;
+
+var refreshInput = false;
 
 input.caps = false;
 
@@ -68,12 +73,24 @@ input["combo"] = function(a, b)
 
 input["update"] = function()
 {
+	// Lose input when focus is lost
+	if (!document.hasFocus() || refreshInput)
+	{
+		for (key in keyboardRaw)
+		{
+			keyboardRaw[key] = 0;
+		}
+		//mouseRaw = 0;
+		refreshInput = false;
+	}
+	
 	mouse_switch    = input.pullSwitch(mouseRaw == 1, mouse_switch);
 	rmb_switch      = input.pullSwitch(mouseRaw == 3, rmb_switch);
 	middle_switch   = input.pullSwitch(mouseRaw == 2, middle_switch);
 
 	r_key      = input.pullSwitch(keyboardRaw["R"] == 1, r_key);
 	z_key      = input.pullSwitch(keyboardRaw["Z"] == 1, z_key);
+	y_key      = input.pullSwitch(keyboardRaw["Y"] == 1, y_key);
 	shift_key  = input.pullSwitch(keyboardRaw["shift"] == 1, shift_key);
 	alt_key    = input.pullSwitch(keyboardRaw["alt"] == 1, alt_key);
 	enter_key  = input.pullSwitch(keyboardRaw["return"] == 1, enter_key);
@@ -88,21 +105,13 @@ input["update"] = function()
 	s_key      = input.pullSwitch(keyboardRaw["S"] == 1, s_key);
 	a_key      = input.pullSwitch(keyboardRaw["A"] == 1, a_key);
 	d_key      = input.pullSwitch(keyboardRaw["D"] == 1, d_key);
+	
+	t_key      = input.pullSwitch(keyboardRaw["T"] == 1, t_key);
 
 	// Debug and editor keys
 	minus_key  = input.pullSwitch(keyboardRaw["minus"] == 1, minus_key);
 	plus_key   = input.pullSwitch(keyboardRaw["plus"] == 1, plus_key);
 	grave_key  = input.pullSwitch(keyboardRaw["tilde"] == 1, grave_key);
-
-	// Lose input when focus is lost
-	if (!document.hasFocus())
-	{
-		for (key in keyboardRaw)
-		{
-			keyboardRaw[key] = 0;
-		}
-		mouseRaw = 0;
-	}
 }
 
 function keyDown(e)
@@ -110,6 +119,9 @@ function keyDown(e)
 	input.caps = e.getModifierState && e.getModifierState( 'CapsLock' );
 
 	var key = input.getKey(e.keyCode);
+
+	if (key.search("^[A-Z]$") == 0)
+		e.preventDefault();
 
 	if (key === "tab")
 		e.preventDefault();

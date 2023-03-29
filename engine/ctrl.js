@@ -9,6 +9,8 @@ var camera = [];
 var mouse = [];
 var sleep = 0;
 
+const isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+
 ctrl["init"] = function ()
 {
 	// Init camera
@@ -24,6 +26,7 @@ ctrl["init"] = function ()
 	mouse.ry = 0;
 
 	mouse.wheel = 0;
+	mouse.wheelRaw = 0;
 
 	sleep = 0;
 }
@@ -49,5 +52,22 @@ canvas.addEventListener('mousemove', event => {
 }, false);
 
 canvas.addEventListener("wheel", event => {
-    mouse.wheel = Math.sign(event.deltaY) * -1;
+	if (isMac)
+	{
+		let changed = false;
+		if (Math.abs(event.deltaY) > mouse.wheelRaw && Math.abs(event.deltaY) !== 0)
+			changed = true;
+
+		mouse.wheelRaw = Math.abs(event.deltaY);
+
+		if (changed)
+	    	mouse.wheel = Math.sign(event.deltaY) * -1;
+	    else
+	    	mouse.wheel = 0;
+	}
+	else
+	{
+		mouse.wheel = Math.sign(event.deltaY) * -1;
+	}
+	
 });

@@ -21,6 +21,14 @@ gfx["triangle"] = function(x1, y1, x2, y2, x3, y3)
 	app.fill();
 }
 
+gfx["line"] = function(x1, y1, x2, y2)
+{
+	app.beginPath();
+	app.moveTo(x1, y1);
+	app.lineTo(x2, y2);
+	app.stroke();
+}
+
 gfx["getTextWidth"] = function(t)
 {
 	const metrics = app.measureText(t);
@@ -33,11 +41,60 @@ gfx["print"] = function(t, x, y)
 	app.fillText(t, x, y);
 }
 
-gfx["printCenter"] = function(t, x, y)
+gfx["printf"] = function(t, x, y, limit, align)
 {
 	app.font = fontSize + 'px dsp';
-	x = ((win.w/2) - (gfx.getTextWidth(t)/2)) - 16;
-	gfx.print(t, x, y);
+	let tbl = [];
+	let tempLen = 0;
+	let tempStr = "";
+
+	// Break string into lines that fit in limit
+	while (t !== "")
+	{
+		while (tempLen < limit)
+		{
+			tempStr = tempStr + t.slice(0,1);
+			t = t.slice(1);
+
+			tempLen = gfx.getTextWidth(tempStr);
+
+			// String ended
+			if (t === "")
+			{
+				tempLen = limit + 1;
+			}
+		}
+
+		tbl.push(tempStr)
+		tempStr = "";
+		tempLen = 0;
+	}
+
+	if (align === "right")
+	{
+		for (str in tbl)
+		{
+			let tt = tbl[str];
+			app.fillText(tbl[str], x + limit - gfx.getTextWidth(tt), y + ((fontSize+0)*str));
+		}
+	}
+	else if (align === "center")
+	{
+		for (str in tbl)
+		{
+			let tt = tbl[str];
+			let xc = ((win.w/2) - (gfx.getTextWidth(tt)/2));
+			app.fillText(tt, xc, y + ((fontSize+0)*str));
+		}
+	}
+	else
+	{
+		for (str in tbl)
+		{
+			app.fillText(tbl[str], x, y + ((fontSize+0)*str));
+		}
+	}
+	
 }
 
 gfx["push"] = function()
@@ -77,7 +134,7 @@ gfx["newImage"] = function(x, w, h)
 	return this_img;
 }
 
-gfx["drawImage"] = function(img)
+gfx["drawImage"] = function(img, x, y)
 {
-	app.drawImage(img, 0, 0, img.w, img.h);
+	app.drawImage(img, x, y, img.w, img.h);
 }

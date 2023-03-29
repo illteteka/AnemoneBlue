@@ -1,12 +1,68 @@
 var editor = [];
 
 // Import editor icons
-var edit_move = gfx.newImage("../anemone-blue/svg/editor/edit_move.svg", 24, 24);
-var edit_grid = gfx.newImage("../anemone-blue/svg/editor/edit_grid.svg", 24, 24);
-var edit_reset = gfx.newImage("../anemone-blue/svg/editor/edit_reset.svg", 24, 24);
-var edit_trash = gfx.newImage("../anemone-blue/svg/editor/edit_trash.svg", 24, 24);
-var edit_print = gfx.newImage("../anemone-blue/svg/editor/edit_print.svg", 24, 24);
-var edit_default = gfx.newImage("../anemone-blue/svg/editor/edit_default.svg", 48, 48);
+var edit_move = gfx.newImage("svg/editor/edit_move.svg", 24, 24);
+var edit_grid = gfx.newImage("svg/editor/edit_grid.svg", 24, 24);
+var edit_reset = gfx.newImage("svg/editor/edit_reset.svg", 24, 24);
+var edit_trash = gfx.newImage("svg/editor/edit_trash.svg", 24, 24);
+var edit_print = gfx.newImage("svg/editor/edit_print.svg", 24, 24);
+var edit_zoom = gfx.newImage("svg/editor/edit_zoom.svg", 24, 24);
+var edit_undo = gfx.newImage("svg/editor/edit_undo.svg", 24, 24);
+var edit_redo = gfx.newImage("svg/editor/edit_redo.svg", 24, 24);
+var edit_random = gfx.newImage("svg/editor/edit_random.svg", 24, 24);
+var edit_lock = gfx.newImage("svg/editor/edit_lock.svg", 24, 24);
+var edit_default = gfx.newImage("svg/editor/edit_default.svg", 48, 48);
+
+// Update with defaults for obj vars
+editor["insertObject"] = function(src, x, y)
+{
+	let tbl = [];
+
+	let this_create = editor.getExport(src.name);
+	this_create = this_create.slice(this_create.indexOf("(") + 1)
+
+	while (this_create.indexOf(")") !== -1)
+	{
+		let next = this_create.indexOf(",");
+		let endSearch = false;
+		if (next == -1)
+		{
+			next = this_create.indexOf(")");
+			endSearch = true;
+		}
+
+		let this_var = this_create.slice(0, next);
+		this_create = this_create.slice(next + 1);
+		this_var = this_var.replace(/\s/g, "");
+
+		if (this_var === "x")
+			tbl[this_var] = x;
+		else if (this_var === "y")
+			tbl[this_var] = y;
+		else if (this_var === "w")
+			tbl[this_var] = 0;
+		else if (this_var === "h")
+			tbl[this_var] = 0;
+		else if (this_var === "color")
+			tbl[this_var] = "white";
+	}
+
+	src.push(tbl);
+}
+
+// Update with all levels to be used in editor
+editor["importLevels"] = function()
+{
+	let win_color = win.color;
+
+	editor.copyLevel(level_test_one);
+	editor.copyLevel(level_test_two);
+
+	editor.storeEdits();
+
+	// Reset window color back
+	win.color = win_color;
+}
 
 /*
 	Editor do once
@@ -20,10 +76,15 @@ editor["load"] = function()
 	editor.addTool("GRID", edit_grid);
 	editor.addTool("RESETCAM", edit_reset);
 	editor.addTool("TRASH", edit_trash);
+	editor.addTool("ZOOM", edit_zoom);
 	editor.addTool("PRINT", edit_print);
+	editor.addTool("RANDOM", edit_random);
+	editor.addTool("LOCK", edit_lock);
+	editor.addTool("UNDO", edit_undo);
+	editor.addTool("REDO", edit_redo);
 
 	editor.toolbar["x"] = 16;
-	editor.toolbar["y"] = 160;
+	editor.toolbar["y"] = 200;
 	editor.toolbar["btn_size"] = 24;
 	editor.toolbar["w"] = editor.toolbar.btn_size * 2;
 	editor.toolbar["h"] = Math.ceil(editor.toolbar.length / 2) * editor.toolbar.btn_size;
@@ -41,7 +102,18 @@ editor["load"] = function()
 	editor["move_obj"]     = 0; // Individual instance ^^
 	editor["move_model"]   = edit_default; // Move object's model
 
+	editor["edits"] = []; // Undo stack
+	editor["edit_cursor"] = 0;
+
 	editor.levels = [];
+
+	editor["midx"] = 0;
+	editor["midy"] = 0;
+
+	editor["lastmousex"] = 0;
+	editor["lastmousey"] = 0;
+
+	editor["color"] = "white";
 }
 
 editor["init"] = function()
@@ -66,15 +138,102 @@ editor["init"] = function()
 	editor.importLevels();
 }
 
-editor["importLevels"] = function()
+editor["storeEdits"] = function()
 {
-	let win_color = win.color;
+	let levels_copy = [];
+	for (level in editor.levels)
+	{
+		let this_lvl = editor.levels[level];
+		let a_level = [];
+		
+		for (inst in this_lvl)
+		{
+			let inst_copy = [];
+			
+			let this_inst = this_lvl[inst]
 
-	editor.copyLevel(level_test_one);
-	editor.copyLevel(level_test_two);
+			for (obj in this_inst)
+			{
+				let obj_copy = [];
+				let this_obj = this_inst[obj]
+				
+				if (this_inst[obj].x !== undefined)
+				{
+					for (key in this_obj)
+					{
+						obj_copy[key] = this_obj[key];
+					}
+					inst_copy.push(obj_copy);
+				}
+				
+			}
+			a_level.push(inst_copy);
+		}
+		levels_copy.push(a_level);
+	}
 
-	// Reset window color back
-	win.color = win_color;
+	if (editor.edits.length == editor.edit_cursor)
+	{
+		editor.edits.push(levels_copy);
+		editor.edit_cursor++;
+	}
+	else if (editor.edit_cursor !== 0)
+	{
+		editor.edits = editor.edits.slice(0, editor.edit_cursor);
+		editor.edits.push(levels_copy);
+		editor.edit_cursor = editor.edits.length
+	}
+	
+}
+
+editor["loadEdits"] = function(edit)
+{
+	let levels_copy = [];
+	for (level in edit)
+	{
+		let this_lvl = edit[level];
+		let a_level = [];
+		
+		for (inst in this_lvl)
+		{
+			let inst_copy = [];
+			
+			let this_inst = this_lvl[inst]
+
+			let this_name = editor.levels[level][inst].name;
+			editor.levels[level][inst] = [];
+			for (obj in this_inst)
+			{
+				let obj_copy = [];
+				let this_obj = this_inst[obj]
+				
+				if (this_inst[obj].x !== undefined)
+				{
+					for (key in this_obj)
+					{
+						obj_copy[key] = this_obj[key];
+					}
+					editor.levels[level][inst].push(obj_copy);
+				}
+				
+			}
+			editor.levels[level][inst]["name"] = this_name;
+
+		}
+	}
+	
+}
+
+editor["undo"] = function()
+{
+	editor.edit_cursor = Math.max(editor.edit_cursor - 1, 1);
+	editor.loadEdits(editor.edits[editor.edit_cursor - 1]);
+}
+
+editor["redo"] = function()
+{
+	editor.edit_cursor = Math.min(editor.edit_cursor + 1, editor.edits.length);
+	editor.loadEdits(editor.edits[editor.edit_cursor - 1]);
 }
 
 editor["updateMouse"] = function(dt)
@@ -134,6 +293,8 @@ editor["updateMouse"] = function(dt)
 	if (mouse_switch == _RELEASE)
 	{
 
+		let storeThis = false;
+
 		if (!toolbar_is_active)
 		{
 
@@ -144,10 +305,11 @@ editor["updateMouse"] = function(dt)
 			else if (etrash)
 			{
 				editor.deleteInstance();
+				storeThis = true;
 			}
 			else
 			{
-				editor.placeInstance(egrid);
+				storeThis = editor.placeInstance(egrid);
 			}
 
 		}
@@ -158,31 +320,99 @@ editor["updateMouse"] = function(dt)
 			editor.move_obj = 0;
 			editor.move_model = edit_default;
 			editor.is_moving = false;
+			storeThis = true;
 		}
 
 		emouse.is_selecting = false;
 
+		if (storeThis)
+			editor.storeEdits();
+
+	}
+
+	// Pan with middle mouse button
+	if (middle_switch == _PRESS)
+	{
+		editor.midx = mouse.rx;
+		editor.midy = mouse.ry;
+
+		editor.lastmousex = mouse.x;
+		editor.lastmousey = mouse.y;
+	}
+
+	if (middle_switch == _ON)
+	{
+		if (editor.lastmousex !== mouse.x || editor.lastmousey !== mouse.y)
+		{
+			camera.x += mouse.rx - editor.midx;
+			camera.y += mouse.ry - editor.midy;
+		}
+		
+		editor.lastmousex = mouse.x;
+		editor.lastmousey = mouse.y;
+	}
+
+	let ctrl = ((keyboardRaw["ctrl"] == 1) || (keyboardRaw["gui"] == 1))
+	if (mouse_switch == _OFF)
+	{
+		if (ctrl && z_key == _PRESS)
+		{
+			editor.undo();
+		}
+
+		if (ctrl && y_key == _PRESS)
+		{
+			editor.redo();
+		}
 	}
 }
 
 editor["export"] = function()
 {
-	console.log("--------------------START--------------------");
+	let export_buffer = "";
+	export_buffer += "//------------------START--------------------\n";
 
 	let this_lvl = editor.levels[editor.current_level];
 	let i = 0;
 	while (i < this_lvl.length)
 	{
 
-		let this_create = editor.getExport(this_lvl[i].name);
 		let j = 0;
 		while (j < this_lvl[i].length)
 		{
+			let this_create = editor.getExport(this_lvl[i].name);
 			let this_obj = this_lvl[i][j];
-			let exp_str = this_create + "(";
-			exp_str = exp_str + this_obj.x + ", ";
-			exp_str = exp_str + this_obj.y + ");";
-			console.log(exp_str);
+
+			let fname = this_create.slice(0, this_create.indexOf("("))
+			this_create = this_create.slice(this_create.indexOf("(") + 1)
+
+			let exp_str = "" + fname + "(";
+
+			while (this_create.indexOf(")") !== -1)
+			{
+				let next = this_create.indexOf(",");
+				let endSearch = false;
+				if (next == -1)
+				{
+					next = this_create.indexOf(")");
+					endSearch = true;
+				}
+
+				let this_var = this_create.slice(0, next);
+				this_create = this_create.slice(next + 1);
+				this_var = this_var.replace(/\s/g, "");
+
+				let vv = this_obj[this_var];
+				if (typeof vv === 'string')
+					vv = '\"' + vv + '\"';
+
+				if (endSearch)
+					exp_str = exp_str + vv + ");";
+				else
+					exp_str = exp_str + vv + ", ";
+			}
+
+			export_buffer += exp_str + "\n";
 
 			j++;
 		}
@@ -190,12 +420,17 @@ editor["export"] = function()
 
 	}
 
-	console.log("---------------------END---------------------");
+	export_buffer += "//-------------------END---------------------\n";
+
+	console.log(export_buffer);
 }
 
 editor["checkInstanceMoveable"] = function()
 {
 	let this_lvl = editor.levels[editor.current_level];
+
+	let allTools = editor.getActiveTools();
+	let elock = allTools.elock;
 
 	let move_group = -1;
 	let move_obj = -1;
@@ -217,7 +452,17 @@ editor["checkInstanceMoveable"] = function()
 				let yy = this_obj[j].y;
 				let ww = editor.move_model.w;
 				let hh = editor.move_model.h;
+
+				if (this_obj[j].w !== undefined)
+				{
+					ww = this_obj[j].w * 48;
+					hh = this_obj[j].h * 48;
+				}
+
 				let check_clicked = CheckCollision(xx, yy, ww, hh, mouse.rx, mouse.ry, 1, 1);
+
+				if (elock && (this_obj.name !== editor.modes[editor.current_mode].objects[editor.current_object]))
+					check_clicked = false;
 
 				if (check_clicked)
 				{
@@ -252,6 +497,9 @@ editor["deleteInstance"] = function()
 {
 	let this_lvl = editor.levels[editor.current_level];
 
+	let allTools = editor.getActiveTools();
+	let elock = allTools.elock;
+
 	let delete_group = -1;
 	let delete_obj = -1;
 
@@ -271,6 +519,9 @@ editor["deleteInstance"] = function()
 				let ww = editor.move_model.w;
 				let hh = editor.move_model.h;
 				let check_clicked = CheckCollision(xx, yy, ww, hh, mouse.rx, mouse.ry, 1, 1);
+
+				if (elock && (this_obj.name !== editor.modes[editor.current_mode].objects[editor.current_object]))
+					check_clicked = false;
 
 				if (check_clicked)
 				{
@@ -307,6 +558,10 @@ editor["placeInstance"] = function(grid_on)
 	let selected_obj = editor.modes[editor.current_mode].objects[editor.current_object];
 	let selected_mdl = editor.modes[editor.current_mode].model[editor.current_object];
 
+	let placed = false;
+
+	let emouse = editor.mouse;
+
 	let i = 0;
 	while (i < this_lvl.length)
 	{
@@ -326,18 +581,19 @@ editor["placeInstance"] = function(grid_on)
 				pw = 0;
 				ph = 0;
 			}
-
+			
 			editor.insertObject(obj_tbl, Math.floor(mx - pw), Math.floor(my - ph));
+
+			placed = true;
 		}
 		i++;
 	}
+
+	return placed;
 }
 
-editor["draw"] = function()
+editor["drawLevel"] = function()
 {
-	let emouse = editor.mouse;
-	let etool = editor.toolbar;
-
 	// Draw current level
 
 	let i = 0;
@@ -345,9 +601,10 @@ editor["draw"] = function()
 	
 	while (i < this_lvl.length)
 	{
+		let nn = this_lvl[i].name;
 
 		// Retrieve the model the object uses for the editor
-		let this_model = editor.getModel(this_lvl[i].name);
+		let this_model = editor.getModel(nn);
 
 		// Draw all objects
 		let j = 0;
@@ -359,7 +616,7 @@ editor["draw"] = function()
 
 			gfx.push();
 			gfx.translate(xx, yy);
-			gfx.drawImage(this_model);
+			gfx.drawImage(this_model, 0, 0);
 			gfx.pop();
 
 			j++;
@@ -367,8 +624,15 @@ editor["draw"] = function()
 
 		i++;
 	}
+}
 
-	// End draw current level
+editor["draw"] = function()
+{
+
+	editor.drawLevel();
+
+	let emouse = editor.mouse;
+	let etool = editor.toolbar;
 
 	let toolbar_is_active = CheckCollision(mouse.x, mouse.y, 1, 1, etool.x, etool.y, etool.w, etool.h);
 
@@ -409,12 +673,14 @@ editor["drawUI"] = function()
 	let data_grid = Math.floor(mouse.rx/48) + ", " + Math.floor(mouse.ry/48);
 	let data_zoom = Math.floor(Math.floor(camera.zoom * 10000) / 100) + "%";
 	let data_ed = editor.modes[editor.current_mode].name + " " + editor.modes[editor.current_mode].objects[editor.current_object];
+	let data_lvl = editor.current_level;
 
-	gfx.print("camera: "   + data_camera, 0, 11*2.2);
-	gfx.print("mouse: "    + data_mouse,  0, 22*2.2);
-	gfx.print("grid: "     + data_grid,   0, 33*2.2);
-	gfx.print("editor: "   + data_ed,     0, 44*2.2);
-	gfx.print("zoom: "     + data_zoom,   0, 55*2.2);
+	gfx.print("camera: "             + data_camera, 0, 11*2.2);
+	gfx.print("mouse: "              + data_mouse,  0, 22*2.2);
+	gfx.print("grid: "               + data_grid,   0, 33*2.2);
+	gfx.print("zoom: "               + data_zoom,   0, 44*2.2);
+	gfx.print("[SHIFT] editor: "     + data_ed,     0, 55*2.2);
+	gfx.print("[ALT] level: "        + data_lvl,    0, 66*2.2);
 
 	editor.drawToolbar();
 
@@ -426,7 +692,7 @@ editor["drawUI"] = function()
 		let select_y = emouse.y - emouse.start_y;
 
 		gfx.setColor("rgba(0 255 0 / 100%)")
-		gfx.printCenter("size: " + select_x + ", " + select_y, 400, 24);
+		gfx.printf("size: " + select_x + ", " + select_y, 400, 24, 9999, "center");
 	}
 
 	gfx.pop();
@@ -477,7 +743,7 @@ editor["drawToolbar"] = function()
 		gfx.setColor(button_color)
 		rect_thick(0,0,button_size - 1,button_size - 1,1 + is_hovered * 2);
 		gfx.scale(1, 1);
-		gfx.drawImage(etool[i].model);
+		gfx.drawImage(etool[i].model, 0, 0);
 
 		xx += button_size;
 		if (xx > button_size)
@@ -502,7 +768,10 @@ editor["updateToolbar"] = function(dt)
 	let xx = 0;
 	let yy = 0;
 	let px = etool.x - 16;
-	let py = etool.y - 16;	
+	let py = etool.y - 16;
+
+	let defer_undo = false;
+	let defer_redo = false;
 
 	let button_size = etool.btn_size;
 
@@ -528,8 +797,18 @@ editor["updateToolbar"] = function(dt)
 					etool[i].active = !etool[i].active;
 				else if (tool_clicked === "MOVE")
 					etool[i].active = !etool[i].active;
+				else if (tool_clicked === "ZOOM")
+					etool[i].active = !etool[i].active;
+				else if (tool_clicked === "RANDOM")
+					etool[i].active = !etool[i].active;
+				else if (tool_clicked === "LOCK")
+					etool[i].active = !etool[i].active;
 				else if (tool_clicked === "PRINT")
 					editor.export();
+				else if (tool_clicked === "UNDO")
+					defer_undo = true;
+				else if (tool_clicked === "REDO")
+					defer_redo = true;
 
 			}
 		}
@@ -543,6 +822,11 @@ editor["updateToolbar"] = function(dt)
 		
 		i++;
 	}
+
+	if (defer_undo)
+		editor.undo();
+	else if (defer_redo)
+		editor.redo();
 }
 
 editor["update"] = function(dt)
@@ -551,6 +835,15 @@ editor["update"] = function(dt)
 	editor.updateToolbar(dt);
 	editor.updateCamera(dt);
 	editor.updateScroll(dt);
+
+	// Load color picker
+	if (document.getElementById('extra').innerHTML !== undefined)
+	{
+		if (document.getElementById('extra').innerHTML.indexOf("color") == -1)
+			document.getElementById('extra').innerHTML = '<input style="position: absolute;z-index: 0;top: ' + (editor.toolbar.y + editor.toolbar.h) + 'px;left: 15px;" type="color" id="color" value="#ff0000">';
+
+		editor.color = getColor(document.getElementById('color').value);
+	}
 }
 
 editor["updateScroll"] = function(dt)
@@ -558,8 +851,14 @@ editor["updateScroll"] = function(dt)
 	if (mouse.wheel !== 0)
 	{
 
-		if (z_key == _ON)
+		let allTools = editor.getActiveTools();
+		let ezoom = allTools.ezoom;
+
+		if (ezoom)
+		{
 			editor.updateZoom(dt);
+			mouse.wheel = 0;
+		}
 
 		let mode_switch = editor.current_object;
 		let mode_list = editor.modes[editor.current_mode].objects;
@@ -725,14 +1024,6 @@ editor["importObject"] = function(category, name, create, model)
 
 }
 
-editor["insertObject"] = function(src, x, y)
-{
-	let tbl = [];
-	tbl["x"] = x;
-	tbl["y"] = y;
-	src.push(tbl);
-}
-
 editor["copyLevel"] = function(lvl)
 {
 	lvl.level();
@@ -750,8 +1041,10 @@ editor["copyLevel"] = function(lvl)
 		{
 			let this_obj = this_inst.data[obj];
 			tbl3 = [];
-			tbl3["x"] = this_obj.x;
-			tbl3["y"] = this_obj.y;
+			for (key in this_obj)
+			{
+				tbl3[key] = this_obj[key];
+			}
 			tbl2.push(tbl3);
 		}
 		tbl.push(tbl2);
@@ -777,6 +1070,9 @@ editor["getActiveTools"] = function()
 	tbl["emove"] = false;
 	tbl["egrid"] = false;
 	tbl["etrash"] = false;
+	tbl["ezoom"] = false;
+	tbl["erandom"] = false;
+	tbl["elock"] = false;
 
 	let i = 0;
 	while (i < editor.toolbar.length)
@@ -789,6 +1085,15 @@ editor["getActiveTools"] = function()
 
 		if (editor.toolbar[i].name === "TRASH" && editor.toolbar[i].active)
 			tbl.etrash = true;
+
+		if (editor.toolbar[i].name === "ZOOM" && editor.toolbar[i].active)
+			tbl.ezoom = true;
+
+		if (editor.toolbar[i].name === "RANDOM" && editor.toolbar[i].active)
+			tbl.erandom = true;
+
+		if (editor.toolbar[i].name === "LOCK" && editor.toolbar[i].active)
+			tbl.elock = true;
 
 		i++;
 	}
@@ -854,4 +1159,52 @@ rect_thick_topleft = function(x,y,w,h,t)
 {
 	gfx.rectangle(x,y,w-t,t);
 	gfx.rectangle(x,y+t,t,h-t);
+}
+
+function getColor(hex)
+{
+	let allTools = editor.getActiveTools();
+	let erandom = allTools.erandom;
+
+	let color = HexToHSL(hex)
+
+	if (erandom)
+		color.l = ((128-Math.random()*64)/255)*100;
+	
+	return 'hsl(' + color.h + ', ' + color.s + '%, ' + color.l + '%)'
+}
+
+function HexToHSL(hex)
+{
+	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+	var r = parseInt(result[1], 16);
+	var g = parseInt(result[2], 16);
+	var b = parseInt(result[3], 16);
+
+	r /= 255, g /= 255, b /= 255;
+	var max = Math.max(r, g, b), min = Math.min(r, g, b);
+	var h, s, l = (max + min) / 2;
+
+	if(max == min){
+		h = s = 0; // achromatic
+	} else {
+		var d = max - min;
+		s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+		switch(max) {
+			case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+			case g: h = (b - r) / d + 2; break;
+			case b: h = (r - g) / d + 4; break;
+		}
+		
+		h /= 6;
+	}
+
+	s = s*100;
+	s = Math.round(s);
+	l = l*100;
+	l = Math.round(l);
+	h = Math.round(360*h);
+
+	return {h, s, l};
 }

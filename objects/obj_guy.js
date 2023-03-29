@@ -7,7 +7,7 @@ obj_guy["init"] = function()
 {
 	obj_guy["data"] = [];
 	obj_guy.name = "guy";
-	editor.importObject("MEN", obj_guy.name, "obj_guy.new", mdl_guy);
+	editor.importObject("MEN", obj_guy.name, "obj_guy.new(x, y)", mdl_guy);
 }
 
 obj_guy["new"] = function(x, y)
@@ -24,8 +24,7 @@ obj_guy["draw"] = function()
 	{
 		let this_guy = obj_guy.data[ent];
 		gfx.push();
-		gfx.translate(this_guy.x, this_guy.y);
-		gfx.drawImage(mdl_guy);
+		gfx.drawImage(mdl_guy, this_guy.x, this_guy.y);
 		gfx.pop();
 	}
 }

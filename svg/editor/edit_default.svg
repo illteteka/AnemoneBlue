@@ -1,6 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'>
-<svg enable-background="new 0 0 48 48" version="1.1" viewBox="0 0 48 48" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
-	<polygon points="25 7 23 7 8 15 8 34 23 41 25 41 40 34 40 15"/>
-	<polygon points="25 9 23 9 10 16 10 33 23 39 25 39 38 33 38 16" fill="#fff"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><path d="M23 7 8 15v19l15 7h2l15-7V15L25 7h-2z" style="fill:#000"/><path d="m23 9-13 7v17l13 6h2l13-6V16L25 9h-2z" style="fill:#fff"/></svg>

@@ -2,7 +2,7 @@ var level_test_one = [];
 
 level_test_one["level"] = function()
 {
-	win.color = "red";
+	win.color = "blue";
 	obj_guy.new(83, 99);
 	obj_guy.new(369, 93);
 	obj_guy.new(95, 219);
@@ -35,6 +35,9 @@ level_test_one["init"] = function()
 	LEVEL_SWITCH = LEVEL_TEST_1;
 	instances.clear();
 	level_test_one.level();
+	
+	//keyboard.clear();
+	//keyboard.newBox("test", 100, 100, 20 * fontSize, fontSize + 5, 32, "default")
 }
 
 level_test_one["update"] = function(dt)
@@ -51,4 +54,6 @@ level_test_one["draw"] = function()
 {
 	gfx.drawImage(mdl_test_level);
 	obj_guy.draw();
+
+	//keyboard.draw();
 }

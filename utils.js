@@ -54,10 +54,7 @@ point_direction = function (x1, y1, x2, y2)
 
 sign = function(x)
 {
-	if (x == 0)
-		return 0;
-	else
-		return (x < 0)?-1:1;
+	return (x < 0) ? -1 : 1;
 }
 
 clamp = function(x, min, max)
